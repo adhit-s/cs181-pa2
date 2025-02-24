@@ -28,7 +28,7 @@ def rectify(img_l, kp_l, img_r, kp_r, matches):
     img_r_rect = cv2.warpPerspective(img_r, H_r, (w_r, h_r))
     return img_l_rect, img_r_rect
 
-def stereo_block_matching(img_l_rect, img_r_rect, window_size=5, max_disparity=100):
+def stereo_block_matching(img_l_rect, img_r_rect, window_size=5, max_disparity=100, lamb=1):
     h, w = img_l_rect.shape
     disparity_map = np.zeros((h, w), np.float32)
     costs = np.full((h, w, max_disparity), np.inf)
@@ -48,7 +48,16 @@ def stereo_block_matching(img_l_rect, img_r_rect, window_size=5, max_disparity=1
         ssd = left_sq_sum - 2*cross_term + right_sq_sum
         costs[:, :, d] = ssd
 
-    disparity_map = np.argmin(costs, axis=2)
+    disparity_range = np.arange(max_disparity).reshape(1, 1, -1)
+    dp = np.zeros((h, w, max_disparity), dtype=np.float32)
+    dp[:, 0, :] = costs[:, 0, :]
+
+    for x in range(1, w):
+        penalties = np.abs(disparity_range - disparity_range.transpose((0, 2, 1))) * lamb
+        min_penalties = np.min(dp[:, x - 1, :, np.newaxis] + penalties, axis=1)
+        dp[:, x, :] = costs[:, x, :] + min_penalties
+
+    disparity_map = np.argmin(dp, axis=2)
     return disparity_map
 
 if __name__ == "__main__":
@@ -74,7 +83,7 @@ if __name__ == "__main__":
     # cv2.imwrite('img_l_rect.png', img_l_rect)
     # cv2.imwrite('img_r_rect.png', img_r_rect)
 
-    disparities = stereo_block_matching(img_l, img_r, window_size=3, max_disparity=64)
+    disparities = stereo_block_matching(img_l, img_r, window_size=7, max_disparity=64, lamb=10)
     scaled = np.uint8(np.clip(disparities * int(sys.argv[3]), 0, 255))
     cv2.imwrite(sys.argv[4], scaled)
 
