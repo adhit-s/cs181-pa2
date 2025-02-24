@@ -62,7 +62,7 @@ def stereo_block_matching(img_l_rect, img_r_rect, window_size=5, max_disparity=1
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Usage: python prog2.py <left_image_name> <right_image_name> <scalefactor> <output_disparity_name>")
+        print("Usage: python prog2.py <left_image_path> <right_image_path> <scale_factor> <output_path>")
         sys.exit(1)
 
     img_l = cv2.imread(sys.argv[1], cv2.IMREAD_GRAYSCALE)
