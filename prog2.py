@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # cv2.imwrite('img_l_rect.png', img_l_rect)
     # cv2.imwrite('img_r_rect.png', img_r_rect)
 
-    disparities = stereo_block_matching(img_l, img_r, window_size=7, max_disparity=64, lamb=10)
+    disparities = stereo_block_matching(img_l, img_r, window_size=7, max_disparity=200, lamb=5)
     scaled = np.uint8(np.clip(disparities * int(sys.argv[3]), 0, 255))
     cv2.imwrite(sys.argv[4], scaled)
 
